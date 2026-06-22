@@ -6,6 +6,10 @@
     "dev:detached": "docker compose up -d --build",
     "dev:down": "docker compose down",
     "dev:logs": "docker compose logs -f api client",
-    "setup": "docker compose up -d --build && docker compose exec api bin/rails db:prepare && docker compose exec api bin/rails db:seed"
+    "setup": "docker compose up -d --build && docker compose exec api bin/rails db:prepare && docker compose exec api bin/rails db:seed",
+    "test": "docker compose exec -e RAILS_ENV=test -e DATABASE_URL=postgres://postgres:postgres@db:5432/api_test api bin/rails db:test:prepare test",
+    "test:api": "docker compose exec -e RAILS_ENV=test -e DATABASE_URL=postgres://postgres:postgres@db:5432/api_test api bin/rails db:test:prepare test",
+    "test:e2e": "npm run test:e2e --prefix client",
+    "test:all": "npm run test:api && npm run test:e2e"
   }
 }

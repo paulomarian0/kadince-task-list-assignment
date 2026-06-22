@@ -1,4 +1,4 @@
-.PHONY: up dev down migrate test test-api test-e2e restart restart-all logs logs-client logs-all shell build seed setup
+.PHONY: up dev down migrate test test-api test-e2e test-all restart restart-all logs logs-client logs-all shell build seed setup
 
 # Foreground dev: API + client logs stream in this terminal (hot reload enabled)
 dev:
@@ -25,6 +25,8 @@ setup: up
 	$(MAKE) seed
 
 test: test-api
+
+test-all: test-api test-e2e
 
 test-api:
 	docker compose exec -e RAILS_ENV=test -e DATABASE_URL=postgres://postgres:postgres@db:5432/api_test api bin/rails db:test:prepare test

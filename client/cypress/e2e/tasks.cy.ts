@@ -115,6 +115,9 @@ describe('Task Management', () => {
   })
 
   it('uses the AI assistant to search tasks', () => {
+    const title = testTitle('Fix authentication bug')
+    createTask(title, 'Security fix')
+
     cy.get('[data-testid="task-assistant-input"]').type('authentication')
     cy.intercept('POST', '**/graphql').as('taskAssistant')
     cy.get('[data-testid="task-assistant-submit"]').click()
