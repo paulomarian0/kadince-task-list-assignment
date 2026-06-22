@@ -15,6 +15,8 @@ RUN bundle install
 
 COPY api/ ./
 
+RUN sed -i 's/\r$//' bin/docker-dev-entrypoint && chmod +x bin/docker-dev-entrypoint
+
 EXPOSE 3000
 
 ENTRYPOINT ["bin/docker-dev-entrypoint"]
