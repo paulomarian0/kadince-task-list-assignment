@@ -13,5 +13,8 @@ bundle check || bundle install
 echo "Preparing database..."
 bin/rails db:prepare
 
+# Stale PID files persist via the mounted ./api volume after container restarts.
+rm -f tmp/pids/server.pid
+
 echo "Starting application..."
 exec "$@"
