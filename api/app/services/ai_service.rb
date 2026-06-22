@@ -16,12 +16,16 @@ class AiService
       )
     end
 
-    def parse_task_search(query:)
+    def parse_task_command(query:)
       sanitized = Ai::ResponseValidator.sanitize_search(query)
-      return { status: nil, priority: nil, search: nil } if sanitized.blank?
-      return { status: nil, priority: nil, search: sanitized } unless enabled?
+      return Ai::ResponseValidator.fallback_task_command if sanitized.blank?
 
-      Ai::TaskSearchParser.call(query: sanitized, provider: current_provider)
+      provider = enabled? ? current_provider : nil
+      Ai::TaskCommandParser.call(query: sanitized, provider: provider)
+    end
+
+    def execute_task_assistant(query:)
+      TaskAssistantService.call(query: query)
     end
 
     private

@@ -13,13 +13,3 @@ export const GET_TASKS = gql`
     }
   }
 `
-
-export const PARSE_TASK_SEARCH = gql`
-  query ParseTaskSearch($query: String!) {
-    parseTaskSearch(query: $query) {
-      status
-      priority
-      search
-    }
-  }
-`

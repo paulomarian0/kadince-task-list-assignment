@@ -152,31 +152,30 @@ mutation {
 }
 ```
 
-### 2. Natural Language Search
+### 2. AI Task Assistant
 
-Convert plain-language queries into structured filters:
+Use plain language to search, create, complete, or delete tasks:
 
 ```graphql
-query {
-  parseTaskSearch(query: "show me high priority authentication tasks") {
-    status
-    priority
-    search
+mutation {
+  executeTaskAssistant(input: { query: "create task Review pull request" }) {
+    action
+    message
+    tasks { id title completed priority }
+    filters { status priority search }
+    errors
   }
 }
 ```
 
-Example response:
+Example commands:
 
-```json
-{
-  "status": "all",
-  "priority": "high",
-  "search": "authentication"
-}
-```
+- `"show high priority authentication tasks"` → search with filters
+- `"create task Deploy staging"` → creates a new task
+- `"complete authentication task"` → marks matching tasks as done
+- `"delete old docs task"` → removes matching tasks
 
-The frontend applies these filters to the `tasks` query automatically.
+For search commands, the frontend applies returned filters to the task list automatically.
 
 ### Prompt Injection Protection
 
@@ -203,15 +202,6 @@ query {
     updatedAt
   }
 }
-
-# Parse natural language into filters
-query {
-  parseTaskSearch(query: "completed low priority docs") {
-    status
-    priority
-    search
-  }
-}
 ```
 
 `status`: `all`, `pending`, `completed` (or omit for all)  
@@ -226,14 +216,23 @@ mutation {
     errors
   }
 }
+
+mutation {
+  executeTaskAssistant(input: { query: "complete authentication task" }) {
+    action
+    message
+    tasks { id title completed }
+    errors
+  }
+}
 ```
 
-Available: `createTask`, `updateTask`, `completeTask`, `reopenTask`, `deleteTask`.
+Available: `createTask`, `updateTask`, `completeTask`, `reopenTask`, `deleteTask`, `executeTaskAssistant`.
 
 ## Frontend Usage
 
 1. Open http://localhost:5173
-2. Use **AI Search** for natural language queries (e.g. "high priority authentication tasks")
+2. Use **AI Assistant** for natural language commands (search, create, complete, delete)
 3. Filter by **status** (All / Pending / Completed) and **priority** (All / Low / Medium / High)
 4. Create tasks — leave priority as "Auto" for AI inference, or pick explicitly
 5. Edit, complete, reopen, or delete tasks from the list
@@ -246,7 +245,7 @@ Available: `createTask`, `updateTask`, `completeTask`, `reopenTask`, `deleteTask
 make test-api
 ```
 
-Covers GraphQL CRUD, priority filters, AI service validation (stubbed), and `parseTaskSearch`.
+Covers GraphQL CRUD, priority filters, AI service validation (stubbed), and `executeTaskAssistant`.
 
 ### Frontend (Cypress)
 

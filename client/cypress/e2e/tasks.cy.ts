@@ -116,11 +116,11 @@ describe('Task Management', () => {
     })
   })
 
-  it('searches tasks with natural language input', () => {
-    cy.get('[data-testid="nl-search-input"]').type('authentication')
-    cy.intercept('POST', '**/graphql').as('nlSearch')
-    cy.get('[data-testid="nl-search-submit"]').click()
-    cy.wait('@nlSearch')
+  it('uses the AI assistant to search tasks', () => {
+    cy.get('[data-testid="task-assistant-input"]').type('authentication')
+    cy.intercept('POST', '**/graphql').as('taskAssistant')
+    cy.get('[data-testid="task-assistant-submit"]').click()
+    cy.wait('@taskAssistant')
 
     cy.get('[data-testid="task-list"]').within(() => {
       cy.contains('[data-testid="task-title"]', /authentication/i).should('be.visible')

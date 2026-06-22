@@ -68,3 +68,27 @@ export const DELETE_TASK = gql`
     }
   }
 `
+
+export const EXECUTE_TASK_ASSISTANT = gql`
+  mutation ExecuteTaskAssistant($query: String!) {
+    executeTaskAssistant(input: { query: $query }) {
+      action
+      message
+      filters {
+        status
+        priority
+        search
+      }
+      tasks {
+        id
+        title
+        description
+        completed
+        priority
+        createdAt
+        updatedAt
+      }
+      errors
+    }
+  }
+`

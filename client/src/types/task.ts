@@ -19,6 +19,16 @@ export interface TaskSearchFilters {
   search: string | null
 }
 
+export type TaskAssistantAction = 'search' | 'create' | 'delete' | 'complete'
+
+export interface TaskAssistantResult {
+  action: TaskAssistantAction
+  message: string
+  tasks: Task[]
+  filters: TaskSearchFilters | null
+  errors: string[]
+}
+
 export interface CreateTaskInput {
   title: string
   description?: string

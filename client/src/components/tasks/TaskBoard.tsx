@@ -1,10 +1,10 @@
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useNaturalLanguageSearch } from '@/hooks/useNaturalLanguageSearch'
+import { useTaskAssistant } from '@/hooks/useTaskAssistant'
 import { useTaskMutations } from '@/hooks/useTaskMutations'
 import { useTasksQuery } from '@/hooks/useTasksQuery'
 
-import { NaturalLanguageSearch } from './NaturalLanguageSearch'
+import { TaskAssistant } from './TaskAssistant'
 import { TaskErrorBanner } from './TaskErrorBanner'
 import { TaskFilters } from './TaskFilters'
 import { TaskForm } from './TaskForm'
@@ -25,9 +25,16 @@ export function TaskBoard() {
     clearSearch,
   } = useTasksQuery()
 
-  const { search, searching, searchError, clearSearchError } = useNaturalLanguageSearch(
-    applySearchFilters,
-  )
+  const {
+    runCommand,
+    running,
+    assistantError,
+    assistantMessage,
+    clearAssistant,
+  } = useTaskAssistant({
+    onApplyFilters: applySearchFilters,
+    refetch,
+  })
 
   const {
     editingTask,
@@ -50,14 +57,15 @@ export function TaskBoard() {
     <>
       <PageHeader />
 
-      <NaturalLanguageSearch
-        onSearch={search}
+      <TaskAssistant
+        onRun={runCommand}
         onClear={() => {
           clearSearch()
-          clearSearchError()
+          clearAssistant()
         }}
-        isSearching={searching}
-        error={searchError}
+        isRunning={running}
+        error={assistantError}
+        message={assistantMessage}
       />
 
       <TaskFilters
