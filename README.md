@@ -2,7 +2,10 @@
 
 Full-stack task manager built with **Rails 8**, **GraphQL**, **React + TypeScript**, **SQLite**, and an **AI task assistant** powered by Groq.
 
-**Production demo:** API on [Fly.io](https://fly.io) + frontend on [Vercel](https://vercel.com). See **[DEPLOY.md](DEPLOY.md)** for step-by-step instructions.
+**Live demo:** https://kadince-task-list-assignment.vercel.app  
+**GraphQL API:** https://kadince-task-list-assignment.fly.dev/graphql
+
+**Production stack:** frontend on [Vercel](https://vercel.com), API on [Fly.io](https://fly.io). See **[DEPLOY.md](DEPLOY.md)** for step-by-step instructions.
 
 ---
 
