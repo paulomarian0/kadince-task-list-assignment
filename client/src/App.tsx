@@ -1,8 +1,12 @@
-import { TaskList } from './components/TaskList'
-import './App.css'
+import { AppShell } from '@/components/layout/AppShell'
+import { TaskBoard } from '@/components/tasks/TaskBoard'
 
 function App() {
-  return <TaskList />
+  return (
+    <AppShell>
+      <TaskBoard />
+    </AppShell>
+  )
 }
 
 export default App
