@@ -1,0 +1,28 @@
+# Used by Dockerfile.fly (build context is repo root).
+# Keep sensitive and dev-only files out of production images.
+
+.git
+.gitignore
+
+api/.bundle
+api/.env*
+api/config/master.key
+api/config/credentials/*.key
+api/log/*
+api/tmp/*
+!api/log/.keep
+!api/tmp/.keep
+api/tmp/pids/*
+!api/tmp/pids/.keep
+api/storage/*
+!api/storage/.keep
+api/tmp/storage/*
+!api/tmp/storage/.keep
+api/.github
+api/.kamal
+api/.devcontainer
+api/.dockerignore
+api/Dockerfile*
+
+.env
+.env.*
