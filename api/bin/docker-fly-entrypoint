@@ -1,4 +1,5 @@
-#!/bin/bash -e
+#!/bin/sh
+set -e
 
 cd /app/api
 
@@ -9,15 +10,14 @@ export DATABASE_CACHE_PATH="${DATABASE_CACHE_PATH:-/data/production_cache.sqlite
 export DATABASE_QUEUE_PATH="${DATABASE_QUEUE_PATH:-/data/production_queue.sqlite3}"
 export DATABASE_CABLE_PATH="${DATABASE_CABLE_PATH:-/data/production_cable.sqlite3}"
 
-echo "Preparing database..."
-bin/rails db:prepare
+if [ "$1" = "bin/rails" ] && { [ "$2" = "server" ] || [ "$2" = "s" ]; }; then
+  if [ "${SEED_ON_BOOT:-false}" = "true" ]; then
+    echo "Seeding database..."
+    bin/rails db:seed
+  fi
 
-if [ "${SEED_ON_BOOT:-false}" = "true" ]; then
-  echo "Seeding database..."
-  bin/rails db:seed
+  rm -f tmp/pids/server.pid
 fi
-
-rm -f tmp/pids/server.pid
 
 echo "Starting application..."
 exec "$@"

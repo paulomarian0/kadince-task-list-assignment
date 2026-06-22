@@ -19,7 +19,8 @@ RUN bundle config set --local deployment true \
 
 COPY api/ ./
 
-RUN sed -i 's/\r$//' bin/docker-fly-entrypoint && chmod +x bin/docker-fly-entrypoint
+RUN find bin -type f -exec sed -i 's/\r$//' {} + \
+  && chmod +x bin/*
 
 ENV RAILS_ENV=production \
     RAILS_LOG_TO_STDOUT=true \
