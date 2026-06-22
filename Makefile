@@ -1,4 +1,8 @@
-.PHONY: up down migrate test test-api test-e2e restart restart-all logs logs-client shell build seed setup
+.PHONY: up dev down migrate test test-api test-e2e restart restart-all logs logs-client logs-all shell build seed setup
+
+# Foreground dev: API + client logs stream in this terminal (hot reload enabled)
+dev:
+	docker compose up --build db api client
 
 up:
 	docker compose up -d --build
@@ -39,6 +43,9 @@ logs:
 
 logs-client:
 	docker compose logs -f client
+
+logs-all:
+	docker compose logs -f api client
 
 shell:
 	docker compose exec api bash

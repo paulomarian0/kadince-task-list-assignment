@@ -35,7 +35,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    restart: unless-stopped
+    stdin_open: true
+    tty: true
 
   client:
     image: node:20-alpine
@@ -49,9 +50,13 @@ services:
     environment:
       VITE_GRAPHQL_URL: /graphql
       VITE_API_PROXY_TARGET: http://api:3000
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+      CHOKIDAR_USEPOLLING: "true"
+      VITE_HMR_HOST: localhost
+    command: sh -c "if [ ! -d node_modules/.bin/vite ]; then npm install; fi && npm run dev -- --host 0.0.0.0"
     depends_on:
       - api
+    stdin_open: true
+    tty: true
 
 volumes:
   postgres_data:

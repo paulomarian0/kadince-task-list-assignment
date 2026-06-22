@@ -46,8 +46,18 @@ cp .env.example .env
 
 2. Start the full stack:
 
+**Recommended for development** — logs from API and frontend stream in your terminal, with hot reload:
+
+```bash
+npm run dev
+# or: make dev
+```
+
+Start in the background (detached):
+
 ```bash
 make up
+# or: npm run dev:detached
 ```
 
 Or full setup with migrations and seed data:
@@ -55,6 +65,15 @@ Or full setup with migrations and seed data:
 ```bash
 make setup
 ```
+
+### Hot reload
+
+| Layer | Behavior |
+|-------|----------|
+| **Frontend (Vite)** | HMR via volume mount; polling enabled in Docker for reliable reload on Windows |
+| **Backend (Rails)** | Code reloads on each request in development (`config.enable_reloading = true`) |
+
+When running detached (`make up`), follow logs with `make logs-all` or `npm run dev:logs`.
 
 | Service | URL |
 |---------|-----|
@@ -66,7 +85,8 @@ make setup
 
 | Command | Description |
 |---------|-------------|
-| `make up` | Build and start all services |
+| `make dev` | Start db + api + client in foreground (live logs, hot reload) |
+| `make up` | Build and start all services in background |
 | `make down` | Stop containers |
 | `make setup` | Start stack, migrate, and seed |
 | `make migrate` | Run database migrations |
@@ -77,6 +97,7 @@ make setup
 | `make restart-all` | Restart all containers |
 | `make logs` | Follow API logs |
 | `make logs-client` | Follow frontend logs |
+| `make logs-all` | Follow API + frontend logs |
 | `make shell` | Bash shell in API container |
 
 On Windows without Make, use the equivalent `docker compose` commands from the table above.

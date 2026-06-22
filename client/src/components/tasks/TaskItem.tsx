@@ -71,7 +71,7 @@ export function TaskItem({
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             size="sm"
             data-testid="edit-task"
             onClick={() => onEdit(task)}
@@ -83,7 +83,7 @@ export function TaskItem({
           {task.completed ? (
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
               data-testid="reopen-task"
               onClick={() => onReopen(task)}
@@ -95,7 +95,7 @@ export function TaskItem({
           ) : (
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
               data-testid="complete-task"
               onClick={() => onComplete(task)}

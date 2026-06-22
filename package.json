@@ -1,0 +1,11 @@
+{
+  "name": "kadince-task-list-assignment",
+  "private": true,
+  "scripts": {
+    "dev": "docker compose up --build db api client",
+    "dev:detached": "docker compose up -d --build",
+    "dev:down": "docker compose down",
+    "dev:logs": "docker compose logs -f api client",
+    "setup": "docker compose up -d --build && docker compose exec api bin/rails db:prepare && docker compose exec api bin/rails db:seed"
+  }
+}

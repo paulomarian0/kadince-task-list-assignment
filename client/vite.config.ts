@@ -13,6 +13,14 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173,
+    watch: {
+      // Reliable file watching when client runs in Docker on Windows/macOS bind mounts
+      usePolling: process.env.CHOKIDAR_USEPOLLING === 'true',
+    },
+    hmr: {
+      host: process.env.VITE_HMR_HOST || 'localhost',
+      port: 5173,
+    },
     proxy: {
       '/graphql': {
         target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:3000',
