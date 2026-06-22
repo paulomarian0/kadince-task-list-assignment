@@ -29,8 +29,8 @@ export function useTaskAssistant({ onApplyFilters, refetch }: UseTaskAssistantOp
 
     try {
       const result = await executeTaskAssistant({ variables: { query: trimmed } })
-      if (result.error) {
-        setAssistantError(result.error.message)
+      if (result.errors?.length) {
+        setAssistantError(result.errors.map((error) => error.message).join(', '))
         return
       }
 
