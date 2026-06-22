@@ -3,7 +3,7 @@ set -e
 
 cd /app/api
 
-mkdir -p /data tmp/pids
+mkdir -p /data tmp/pids storage
 
 export DATABASE_PATH="${DATABASE_PATH:-/data/production.sqlite3}"
 export DATABASE_CACHE_PATH="${DATABASE_CACHE_PATH:-/data/production_cache.sqlite3}"
@@ -12,11 +12,14 @@ export DATABASE_CABLE_PATH="${DATABASE_CABLE_PATH:-/data/production_cable.sqlite
 
 if [ "${RAILS_ENV:-production}" = "production" ] && [ -z "${RAILS_MASTER_KEY:-}" ] && [ ! -f config/master.key ]; then
   echo "ERROR: RAILS_MASTER_KEY is required in production."
-  echo "Set it on Fly with: fly secrets set RAILS_MASTER_KEY=\"\$(cat api/config/master.key)\" -a kadince-task-list-assignment"
+  echo "Run from project root: ./scripts/fly-deploy.sh secrets"
   exit 1
 fi
 
 if [ "$1" = "bin/rails" ] && { [ "$2" = "server" ] || [ "$2" = "s" ]; }; then
+  echo "Preparing database..."
+  bin/rails db:prepare
+
   if [ "${SEED_ON_BOOT:-false}" = "true" ]; then
     echo "Seeding database..."
     bin/rails db:seed
@@ -25,5 +28,4 @@ if [ "$1" = "bin/rails" ] && { [ "$2" = "server" ] || [ "$2" = "s" ]; }; then
   rm -f tmp/pids/server.pid
 fi
 
-echo "Starting application..."
 exec "$@"

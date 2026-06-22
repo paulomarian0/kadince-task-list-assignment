@@ -1,5 +1,5 @@
-# Fly.io app config. Replace `app` after running: fly apps create <name>
-app = "kadince-task-list-api"
+# Fly.io app config
+app = "kadince-task-list-assignment"
 primary_region = "gru"
 
 [build]
@@ -24,14 +24,11 @@ primary_region = "gru"
 
   [[http_service.checks]]
     interval = "15s"
-    timeout = "2s"
-    grace_period = "20s"
+    timeout = "5s"
+    grace_period = "60s"
     method = "GET"
     path = "/up"
 
 [[mounts]]
   source = "data"
   destination = "/data"
-
-[deploy]
-  release_command = "bin/rails db:prepare"
