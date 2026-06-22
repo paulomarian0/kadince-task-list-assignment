@@ -1,0 +1,14 @@
+pending_one:
+  title: Pending task one
+  description: First pending task
+  completed: false
+
+pending_two:
+  title: Pending task two
+  description: Second pending task
+  completed: false
+
+completed_one:
+  title: Completed task one
+  description: First completed task
+  completed: true

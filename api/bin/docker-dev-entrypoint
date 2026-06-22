@@ -1,0 +1,17 @@
+#!/bin/bash -e
+
+cd /app/api
+
+echo "Waiting for PostgreSQL..."
+until pg_isready -h "${DB_HOST:-db}" -U "${DB_USER:-postgres}" > /dev/null 2>&1; do
+  sleep 1
+done
+
+echo "Installing gems..."
+bundle check || bundle install
+
+echo "Preparing database..."
+bin/rails db:prepare
+
+echo "Starting application..."
+exec "$@"
