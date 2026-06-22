@@ -5,24 +5,39 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import type { Task } from '@/types/task'
+import type { Task, TaskPriority } from '@/types/task'
+
+interface TaskFormValues {
+  title: string
+  description: string
+  priority?: TaskPriority
+}
 
 interface TaskFormProps {
   mode: 'create' | 'edit'
   task?: Task
-  onSubmit: (values: { title: string; description: string }) => Promise<void>
+  onSubmit: (values: TaskFormValues) => Promise<void>
   onCancel?: () => void
   isSubmitting?: boolean
 }
 
+const priorityOptions: { value: '' | TaskPriority; label: string }[] = [
+  { value: '', label: 'Auto (AI infers)' },
+  { value: 'LOW', label: 'Low' },
+  { value: 'MEDIUM', label: 'Medium' },
+  { value: 'HIGH', label: 'High' },
+]
+
 export function TaskForm({ mode, task, onSubmit, onCancel, isSubmitting }: TaskFormProps) {
   const [title, setTitle] = useState(task?.title ?? '')
   const [description, setDescription] = useState(task?.description ?? '')
+  const [priority, setPriority] = useState<'' | TaskPriority>(task?.priority ?? '')
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     setTitle(task?.title ?? '')
     setDescription(task?.description ?? '')
+    setPriority(task?.priority ?? '')
     setError(null)
   }, [task])
 
@@ -36,10 +51,15 @@ export function TaskForm({ mode, task, onSubmit, onCancel, isSubmitting }: TaskF
     }
 
     try {
-      await onSubmit({ title: title.trim(), description: description.trim() })
+      await onSubmit({
+        title: title.trim(),
+        description: description.trim(),
+        priority: priority || undefined,
+      })
       if (mode === 'create') {
         setTitle('')
         setDescription('')
+        setPriority('')
       }
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Something went wrong')
@@ -52,7 +72,7 @@ export function TaskForm({ mode, task, onSubmit, onCancel, isSubmitting }: TaskF
         <CardTitle>{mode === 'create' ? 'Create Task' : 'Edit Task'}</CardTitle>
         <CardDescription>
           {mode === 'create'
-            ? 'Add a new task to your list.'
+            ? 'Add a new task. Leave priority empty to let AI infer it.'
             : 'Update the details of this task.'}
         </CardDescription>
       </CardHeader>
@@ -81,6 +101,24 @@ export function TaskForm({ mode, task, onSubmit, onCancel, isSubmitting }: TaskF
               rows={3}
               disabled={isSubmitting}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor={`${mode}-priority`}>Priority</Label>
+            <select
+              id={`${mode}-priority`}
+              data-testid={`${mode}-task-priority`}
+              value={priority}
+              onChange={(event) => setPriority(event.target.value as '' | TaskPriority)}
+              disabled={isSubmitting}
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {priorityOptions.map((option) => (
+                <option key={option.label} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           {error && (

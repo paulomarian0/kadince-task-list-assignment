@@ -1,13 +1,14 @@
 import { gql } from '@apollo/client'
 
 export const CREATE_TASK = gql`
-  mutation CreateTask($title: String!, $description: String) {
-    createTask(input: { title: $title, description: $description }) {
+  mutation CreateTask($title: String!, $description: String, $priority: TaskPriorityEnum) {
+    createTask(input: { title: $title, description: $description, priority: $priority }) {
       task {
         id
         title
         description
         completed
+        priority
         createdAt
         updatedAt
       }
@@ -17,13 +18,14 @@ export const CREATE_TASK = gql`
 `
 
 export const UPDATE_TASK = gql`
-  mutation UpdateTask($id: ID!, $title: String, $description: String) {
-    updateTask(input: { id: $id, title: $title, description: $description }) {
+  mutation UpdateTask($id: ID!, $title: String, $description: String, $priority: TaskPriorityEnum) {
+    updateTask(input: { id: $id, title: $title, description: $description, priority: $priority }) {
       task {
         id
         title
         description
         completed
+        priority
         createdAt
         updatedAt
       }

@@ -108,4 +108,22 @@ describe('Task Management', () => {
       cy.wrap($status).should('contain.text', 'Completed')
     })
   })
+
+  it('filters tasks by priority', () => {
+    cy.get('[data-testid="filter-priority-high"]').click()
+    cy.get('[data-testid="task-list"]').find('[data-testid="task-priority"]').each(($priority) => {
+      cy.wrap($priority).should('contain.text', 'High Priority')
+    })
+  })
+
+  it('searches tasks with natural language input', () => {
+    cy.get('[data-testid="nl-search-input"]').type('authentication')
+    cy.intercept('POST', '**/graphql').as('nlSearch')
+    cy.get('[data-testid="nl-search-submit"]').click()
+    cy.wait('@nlSearch')
+
+    cy.get('[data-testid="task-list"]').within(() => {
+      cy.contains('[data-testid="task-title"]', /authentication/i).should('be.visible')
+    })
+  })
 })

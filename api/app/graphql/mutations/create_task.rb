@@ -6,11 +6,18 @@ module Mutations
 
     argument :title, String, required: true
     argument :description, String, required: false
+    argument :priority, Types::TaskPriorityEnum, required: false
 
     field :task, Types::TaskType, null: true
 
-    def resolve(title:, description: "")
-      task = Task.new(title: title, description: description, completed: false)
+    def resolve(title:, description: "", priority: nil)
+      resolved_priority = priority || AiService.infer_task_priority(title: title, description: description)
+      task = Task.new(
+        title: title,
+        description: description,
+        completed: false,
+        priority: resolved_priority
+      )
 
       if task.save
         { task: task, errors: [] }

@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import type { Task } from '@/types/task'
+import { normalizePriority, priorityLabel, type Task } from '@/types/task'
 
 interface TaskItemProps {
   task: Task
@@ -13,6 +13,13 @@ interface TaskItemProps {
   onReopen: (task: Task) => void
   onDelete: (task: Task) => void
   isUpdating?: boolean
+}
+
+function priorityBadgeVariant(priority: string): 'secondary' | 'pending' | 'default' {
+  const normalized = normalizePriority(priority)
+  if (normalized === 'high') return 'default'
+  if (normalized === 'medium') return 'pending'
+  return 'secondary'
 }
 
 export function TaskItem({
@@ -45,12 +52,20 @@ export function TaskItem({
               {task.description}
             </p>
           )}
-          <Badge
-            variant={task.completed ? 'success' : 'pending'}
-            data-testid="task-status"
-          >
-            {task.completed ? 'Completed' : 'Pending'}
-          </Badge>
+          <div className="flex flex-wrap gap-2">
+            <Badge
+              variant={task.completed ? 'success' : 'pending'}
+              data-testid="task-status"
+            >
+              {task.completed ? 'Completed' : 'Pending'}
+            </Badge>
+            <Badge
+              variant={priorityBadgeVariant(task.priority)}
+              data-testid="task-priority"
+            >
+              {priorityLabel(task.priority)} Priority
+            </Badge>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-2">

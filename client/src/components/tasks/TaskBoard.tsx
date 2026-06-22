@@ -1,8 +1,10 @@
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useNaturalLanguageSearch } from '@/hooks/useNaturalLanguageSearch'
 import { useTaskMutations } from '@/hooks/useTaskMutations'
 import { useTasksQuery } from '@/hooks/useTasksQuery'
 
+import { NaturalLanguageSearch } from './NaturalLanguageSearch'
 import { TaskErrorBanner } from './TaskErrorBanner'
 import { TaskFilters } from './TaskFilters'
 import { TaskForm } from './TaskForm'
@@ -10,7 +12,23 @@ import { TaskList } from './TaskList'
 import { TaskLoadingState } from './TaskLoadingState'
 
 export function TaskBoard() {
-  const { tasks, loading, error, refetch, activeFilter, setActiveFilter } = useTasksQuery()
+  const {
+    tasks,
+    loading,
+    error,
+    refetch,
+    activeFilter,
+    setActiveFilter,
+    priorityFilter,
+    setPriorityFilter,
+    applySearchFilters,
+    clearSearch,
+  } = useTasksQuery()
+
+  const { search, searching, searchError, clearSearchError } = useNaturalLanguageSearch(
+    applySearchFilters,
+  )
+
   const {
     editingTask,
     setEditingTask,
@@ -32,7 +50,22 @@ export function TaskBoard() {
     <>
       <PageHeader />
 
-      <TaskFilters activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+      <NaturalLanguageSearch
+        onSearch={search}
+        onClear={() => {
+          clearSearch()
+          clearSearchError()
+        }}
+        isSearching={searching}
+        error={searchError}
+      />
+
+      <TaskFilters
+        activeFilter={activeFilter}
+        priorityFilter={priorityFilter}
+        onFilterChange={setActiveFilter}
+        onPriorityFilterChange={setPriorityFilter}
+      />
 
       {mutationError && (
         <TaskErrorBanner

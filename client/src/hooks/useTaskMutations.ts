@@ -8,7 +8,7 @@ import {
   REOPEN_TASK,
   UPDATE_TASK,
 } from '@/graphql/mutations'
-import type { Task } from '@/types/task'
+import type { Task, TaskPriority } from '@/types/task'
 
 interface UseTaskMutationsOptions {
   refetch: () => void
@@ -113,17 +113,26 @@ export function useTaskMutations({ refetch }: UseTaskMutationsOptions) {
     },
   })
 
-  const handleCreate = async (values: { title: string; description: string }) => {
+  const handleCreate = async (values: {
+    title: string
+    description: string
+    priority?: TaskPriority
+  }) => {
     await createTask({ variables: values })
   }
 
-  const handleUpdate = async (values: { title: string; description: string }) => {
+  const handleUpdate = async (values: {
+    title: string
+    description: string
+    priority?: TaskPriority
+  }) => {
     if (!editingTask) return
     await updateTask({
       variables: {
         id: editingTask.id,
         title: values.title,
         description: values.description,
+        priority: values.priority,
       },
     })
   }

@@ -2,13 +2,22 @@ pending_one:
   title: Pending task one
   description: First pending task
   completed: false
+  priority: low
 
 pending_two:
   title: Pending task two
   description: Second pending task
   completed: false
+  priority: medium
 
 completed_one:
   title: Completed task one
   description: First completed task
   completed: true
+  priority: high
+
+auth_task:
+  title: Fix authentication bug
+  description: High priority authentication security fix
+  completed: false
+  priority: high
