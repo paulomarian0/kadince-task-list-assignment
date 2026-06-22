@@ -9,8 +9,9 @@ class Task < ApplicationRecord
   scope :by_priority, ->(priority) { where(priority: priority) if priority.present? }
   scope :search_text, lambda { |query|
     if query.present?
-      sanitized = sanitize_sql_like(query.to_s)
-      where("title ILIKE :q OR description ILIKE :q", q: "%#{sanitized}%")
+      sanitized = sanitize_sql_like(query.to_s.downcase)
+      pattern = "%#{sanitized}%"
+      where("LOWER(title) LIKE ? OR LOWER(description) LIKE ?", pattern, pattern)
     end
   }
 

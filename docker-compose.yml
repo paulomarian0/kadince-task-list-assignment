@@ -1,21 +1,4 @@
 services:
-  db:
-    image: postgres:16-alpine
-    container_name: task-db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: api_development
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   api:
     build:
       context: .
@@ -26,15 +9,13 @@ services:
     volumes:
       - ./api:/app/api
       - bundle_cache:/usr/local/bundle
+      - api_storage:/app/api/storage
     environment:
       RAILS_ENV: development
-      DATABASE_URL: postgres://postgres:postgres@db:5432/api_development
       GROQ_API_KEY: ${GROQ_API_KEY:-}
       GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
       AI_PROVIDER: ${AI_PROVIDER:-groq}
-    depends_on:
-      db:
-        condition: service_healthy
+      CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
     stdin_open: true
     tty: true
 
@@ -59,6 +40,6 @@ services:
     tty: true
 
 volumes:
-  postgres_data:
   bundle_cache:
   client_node_modules:
+  api_storage:

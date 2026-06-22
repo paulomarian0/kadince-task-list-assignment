@@ -1,8 +1,13 @@
-# Be sure to restart your server when you modify this file.
+# frozen_string_literal: true
+
+allowed_origins = ENV.fetch("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
+  .split(",")
+  .map(&:strip)
+  .reject(&:empty?)
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins "http://localhost:5173", "http://127.0.0.1:5173"
+    origins(*allowed_origins)
 
     resource "*",
       headers: :any,

@@ -2,9 +2,8 @@ FROM ruby:3.3.11
 
 RUN apt-get update -qq && apt-get install -y \
     build-essential \
-    libpq-dev \
+    libsqlite3-dev \
     libvips \
-    postgresql-client \
     git \
     && rm -rf /var/lib/apt/lists/*
 

@@ -2,18 +2,14 @@
 
 cd /app/api
 
-echo "Waiting for PostgreSQL..."
-until pg_isready -h "${DB_HOST:-db}" -U "${DB_USER:-postgres}" > /dev/null 2>&1; do
-  sleep 1
-done
-
 echo "Installing gems..."
 bundle install
+
+mkdir -p storage tmp/pids
 
 echo "Preparing database..."
 bin/rails db:prepare
 
-# Stale PID files persist via the mounted ./api volume after container restarts.
 rm -f tmp/pids/server.pid
 
 echo "Starting application..."

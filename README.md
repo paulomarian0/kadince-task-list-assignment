@@ -1,6 +1,8 @@
 # Task Management Application
 
-Full-stack task manager built with **Rails 8**, **GraphQL**, **React + TypeScript**, **PostgreSQL**, and an **AI task assistant** powered by Groq.
+Full-stack task manager built with **Rails 8**, **GraphQL**, **React + TypeScript**, **SQLite**, and an **AI task assistant** powered by Groq.
+
+**Production demo:** API on [Fly.io](https://fly.io) + frontend on [Vercel](https://vercel.com). See **[DEPLOY.md](DEPLOY.md)** for step-by-step instructions.
 
 ---
 
@@ -12,7 +14,7 @@ Follow these steps in order. No guesswork required.
 
 | Tool | Required? | Notes |
 |------|-----------|-------|
-| [Docker Desktop](https://docs.docker.com/get-docker/) | **Yes** | Runs PostgreSQL, Rails API, and Vite frontend |
+| [Docker Desktop](https://docs.docker.com/get-docker/) | **Yes** | Runs Rails API and Vite frontend (SQLite file, no separate DB container) |
 | [Node.js 20+](https://nodejs.org/) | **Yes (for E2E only)** | Cypress runs on your machine, not inside Docker |
 | [Groq API key](https://console.groq.com) | Optional | Full AI assistant; without it, search falls back to plain text |
 | Make | Optional | All commands also work via `npm` (recommended on Windows) |
@@ -174,7 +176,7 @@ npm run dev:down
 | Frontend shows "Failed to load tasks" | API not ready yet. Wait ~30s after `npm run dev`, or check `docker compose logs api`. |
 | AI assistant only searches, never creates | Set `GROQ_API_KEY` in `.env` and restart: `npm run dev:down && npm run dev`. |
 | Cypress cannot reach app | Stack must be running; frontend must be at http://localhost:5173. |
-| Port already in use | Stop other services on ports `3000`, `5173`, or `5432`. |
+| Port already in use | Stop other services on ports `3000` or `5173`. |
 | Windows: `make` not found | Use `npm run …` commands from the root `package.json` instead. |
 
 ---
@@ -189,7 +191,8 @@ npm run dev:down
 | **AI assistant** | Natural language search, create, complete, delete (Groq via RubyLLM) |
 | **Prompt safety** | Input sanitized; AI output validated against whitelists; safe fallbacks |
 | **React UI** | Task board, assistant bar, create/edit form, status filters, error states |
-| **Docker** | One-command dev environment (db + api + client) |
+| **Docker** | One-command dev environment (api + client, SQLite) |
+| **Deploy** | Fly.io (API) + Vercel (frontend) — see [DEPLOY.md](DEPLOY.md) |
 | **Tests** | 38 Minitest + 7 Cypress E2E |
 | **Docs** | This README |
 
@@ -201,7 +204,7 @@ npm run dev:down
 |-------|------------|
 | Backend | Rails 8.1 (API-only) |
 | API | GraphQL (`graphql-ruby`) |
-| Database | PostgreSQL 16 |
+| Database | SQLite (local file + Fly.io volume in production) |
 | AI | Groq via RubyLLM + structured JSON output |
 | Frontend | React 19, TypeScript, Vite, Apollo Client, Tailwind, shadcn/ui |
 | E2E Tests | Cypress |
@@ -210,7 +213,7 @@ npm run dev:down
 ## Architecture
 
 ```text
-React Client  →  GraphQL API  →  Rails Resolvers  →  ActiveRecord  →  PostgreSQL
+React Client  →  GraphQL API  →  Rails Resolvers  →  ActiveRecord  →  SQLite
                                     ↓
                           TaskAssistantService / AiService
                                     ↓
@@ -226,12 +229,34 @@ React Client  →  GraphQL API  →  Rails Resolvers  →  ActiveRecord  →  Po
 
 ```text
 docker-compose.yml
-├── db       → PostgreSQL 16 (port 5432)
-├── api      → Rails + GraphQL (port 3000)
+├── api      → Rails + GraphQL + SQLite (port 3000)
 └── client   → Vite dev server (port 5173)
 ```
 
-The API container waits for PostgreSQL, installs gems, runs `db:prepare`, removes stale PID files, and starts the server.
+The API container installs gems, runs `db:prepare`, removes stale PID files, and starts the server. Data is stored in `api/storage/*.sqlite3`.
+
+## Deployment (Fly.io + Vercel)
+
+| Layer | Platform | Notes |
+|-------|----------|-------|
+| Frontend | **Vercel** | Static Vite build; set `VITE_GRAPHQL_URL` to your Fly URL |
+| API | **Fly.io** | Docker image from `Dockerfile.fly`; SQLite on a Fly volume |
+| Database | **SQLite** | `/data/*.sqlite3` on Fly volume — fine for demos, not for multi-replica prod |
+
+Full walkthrough: **[DEPLOY.md](DEPLOY.md)**
+
+Quick summary:
+
+```bash
+# API
+fly launch --no-deploy    # or edit fly.toml, then:
+fly volumes create data --region gru --size 1
+fly secrets set RAILS_MASTER_KEY="$(cat api/config/master.key)" GROQ_API_KEY=... CORS_ORIGINS=https://your-app.vercel.app
+fly deploy
+
+# Frontend — import repo on Vercel, root directory: client
+# Env: VITE_GRAPHQL_URL=https://YOUR-APP.fly.dev/graphql
+```
 
 ## Environment Variables
 
@@ -239,11 +264,11 @@ Copy [`.env.example`](.env.example):
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DATABASE_URL` | `postgres://postgres:postgres@localhost:5432/api_development` | PostgreSQL connection (host use) |
 | `GROQ_API_KEY` | — | Groq API key ([get one here](https://console.groq.com)) |
 | `GROQ_MODEL` | `llama-3.3-70b-versatile` | Groq model name |
 | `AI_PROVIDER` | `groq` | Active AI provider |
 | `VITE_GRAPHQL_URL` | `/graphql` | Frontend GraphQL endpoint (proxied to API in dev) |
+| `CORS_ORIGINS` | `http://localhost:5173,...` | Comma-separated origins allowed to call the API |
 
 Docker Compose passes `GROQ_*` vars from `.env` into the `api` container automatically.
 
@@ -253,7 +278,7 @@ Docker Compose passes `GROQ_*` vars from `.env` into the `api` container automat
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start db + api + client (foreground, live logs) |
+| `npm run dev` | Start api + client (foreground, live logs) |
 | `npm run dev:detached` | Start all services in background |
 | `npm run dev:down` | Stop containers |
 | `npm run dev:logs` | Follow API + frontend logs |
@@ -402,7 +427,10 @@ Top to bottom on http://localhost:5173:
 │   ├── src/hooks/            # Apollo hooks
 │   └── cypress/e2e/          # E2E tests (7 tests)
 ├── docker-compose.yml
-├── Dockerfile
+├── Dockerfile              # Local dev (Docker Compose)
+├── Dockerfile.fly          # Production (Fly.io)
+├── fly.toml
+├── DEPLOY.md               # Fly.io + Vercel guide
 ├── Makefile
 ├── package.json              # Root npm scripts (dev, test)
 └── .env.example
@@ -415,7 +443,6 @@ Top to bottom on http://localhost:5173:
 ```bash
 cd api
 bundle install
-export DATABASE_URL=postgres://postgres:postgres@localhost:5432/api_development
 export GROQ_API_KEY=your_key
 bin/rails db:prepare
 bin/rails server

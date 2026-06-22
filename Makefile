@@ -29,7 +29,7 @@ test: test-api
 test-all: test-api test-e2e
 
 test-api:
-	docker compose exec -e RAILS_ENV=test -e DATABASE_URL=postgres://postgres:postgres@db:5432/api_test api bin/rails db:test:prepare test
+	docker compose exec -e RAILS_ENV=test api bin/rails db:test:prepare test
 
 test-e2e:
 	cd client && npm run test:e2e

@@ -1,0 +1,23 @@
+#!/bin/bash -e
+
+cd /app/api
+
+mkdir -p /data tmp/pids
+
+export DATABASE_PATH="${DATABASE_PATH:-/data/production.sqlite3}"
+export DATABASE_CACHE_PATH="${DATABASE_CACHE_PATH:-/data/production_cache.sqlite3}"
+export DATABASE_QUEUE_PATH="${DATABASE_QUEUE_PATH:-/data/production_queue.sqlite3}"
+export DATABASE_CABLE_PATH="${DATABASE_CABLE_PATH:-/data/production_cable.sqlite3}"
+
+echo "Preparing database..."
+bin/rails db:prepare
+
+if [ "${SEED_ON_BOOT:-false}" = "true" ]; then
+  echo "Seeding database..."
+  bin/rails db:seed
+fi
+
+rm -f tmp/pids/server.pid
+
+echo "Starting application..."
+exec "$@"
