@@ -10,10 +10,12 @@ class TaskAssistantService
   end
 
   def call
-    sanitized = Ai::ResponseValidator.sanitize_search(@query)
+    sanitized = Ai::ResponseValidator.sanitize_text(@query)
     return error_result("Query cannot be blank") if sanitized.blank?
 
     command = parse_command(sanitized)
+    return error_result(command[:error_message], action: "search") if command[:action] == "error"
+
     execute(command)
   end
 
@@ -48,25 +50,40 @@ class TaskAssistantService
   end
 
   def execute_create(command)
-    title = command[:title]
-    return error_result("Task title is required to create a task", action: "create") if title.blank?
+    targets = command[:targets]
+    return error_result("At least one task title is required to create tasks", action: "create") if targets.empty?
 
     description = command[:description].to_s
-    priority = command[:priority] || AiService.infer_task_priority(title: title, description: description)
-    task = Task.new(
-      title: title,
-      description: description,
-      completed: false,
-      priority: priority
-    )
+    created_tasks = []
+    errors = []
 
-    if task.save
+    Task.transaction do
+      targets.each do |title|
+        priority = command[:priority] || AiService.infer_task_priority(title: title, description: description)
+        task = Task.new(
+          title: title,
+          description: description,
+          completed: false,
+          priority: priority
+        )
+
+        if task.save
+          created_tasks << task
+        else
+          errors.concat(task.errors.full_messages)
+        end
+      end
+
+      raise ActiveRecord::Rollback if errors.any? && created_tasks.empty?
+    end
+
+    if created_tasks.any?
       {
         action: "create",
-        message: "Created task \"#{task.title}\".",
-        tasks: [task],
+        message: create_message(created_tasks),
+        tasks: created_tasks,
         filters: nil,
-        errors: []
+        errors: errors
       }
     else
       {
@@ -74,7 +91,7 @@ class TaskAssistantService
         message: "",
         tasks: [],
         filters: nil,
-        errors: task.errors.full_messages
+        errors: errors.presence || ["Failed to create tasks"]
       }
     end
   end
@@ -120,18 +137,31 @@ class TaskAssistantService
   end
 
   def filtered_tasks(command)
+    targets = command[:targets]
+    scope = base_filtered_scope(command)
+
+    return scope.to_a if targets.empty?
+
+    if targets.size == 1
+      return scope.search_text(targets.first).to_a
+    end
+
+    targets.flat_map { |term| scope.search_text(term).to_a }.uniq(&:id)
+  end
+
+  def base_filtered_scope(command)
     TaskFilterService.call(
       status: command[:status],
       priority: command[:priority],
-      search: command[:search]
-    ).to_a
+      search: nil
+    )
   end
 
   def filter_payload(command)
     {
       status: command[:status],
       priority: command[:priority],
-      search: command[:search]
+      search: command[:targets]&.first
     }
   end
 
@@ -139,6 +169,13 @@ class TaskAssistantService
     return "No tasks matched your search." if count.zero?
 
     "Found #{count} matching task#{'s' unless count == 1}."
+  end
+
+  def create_message(tasks)
+    titles = tasks.map(&:title)
+    return "Created task \"#{titles.first}\"." if titles.size == 1
+
+    "Created #{titles.size} tasks: #{titles.join(', ')}."
   end
 
   def empty_action_result(action, message)

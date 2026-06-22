@@ -154,6 +154,8 @@ mutation {
 
 ### 2. AI Task Assistant
 
+The assistant uses [RubyLLM](https://rubyllm.com/) with structured JSON schemas (`ruby_llm-schema`) via Groq. It returns a typed payload with `action`, `targets`, `status`, and `priority`.
+
 Use plain language to search, create, complete, or delete tasks:
 
 ```graphql
@@ -172,18 +174,21 @@ Example commands:
 
 - `"show high priority authentication tasks"` → search with filters
 - `"create task Deploy staging"` → creates a new task
+- `"create 3 tasks: buy keyboard, go to gym and pick up kids"` → creates 3 tasks
 - `"complete authentication task"` → marks matching tasks as done
 - `"delete old docs task"` → removes matching tasks
+
+Without `GROQ_API_KEY`, the assistant falls back to plain text search only.
 
 For search commands, the frontend applies returned filters to the task list automatically.
 
 ### Prompt Injection Protection
 
 - User input is wrapped as `USER_DATA` in prompts — never executed as instructions
-- AI must return JSON only
+- Structured output is enforced with JSON schemas via RubyLLM
 - All values are validated against whitelists (`low`/`medium`/`high`, `all`/`pending`/`completed`)
-- Invalid AI output triggers safe fallbacks
-- Search text is sanitized (HTML stripped, length capped)
+- Invalid AI output falls back to plain text search
+- Input text is sanitized (HTML stripped, length capped)
 
 ## GraphQL API
 

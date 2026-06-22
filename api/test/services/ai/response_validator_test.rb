@@ -7,6 +7,19 @@ class AiResponseValidatorTest < ActiveSupport::TestCase
     assert_nil Ai::ResponseValidator.validate_priority("urgent")
   end
 
+  test "validates task command payload" do
+    command = Ai::ResponseValidator.validate_task_command(
+      "action" => "complete",
+      "targets" => ["go to hospital", "go to gym"],
+      "status" => nil,
+      "priority" => nil,
+      "description" => nil
+    )
+
+    assert_equal "complete", command[:action]
+    assert_equal ["go to hospital", "go to gym"], command[:targets]
+  end
+
   test "validates search filters whitelist" do
     filters = Ai::ResponseValidator.validate_search_filters(
       "status" => "pending",

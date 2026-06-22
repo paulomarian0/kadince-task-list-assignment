@@ -20,7 +20,7 @@ module Ai
       data = payload.is_a?(Hash) ? payload : {}
       status = normalize_nullable_enum(data["status"] || data[:status], VALID_STATUSES)
       priority = normalize_nullable_enum(data["priority"] || data[:priority], VALID_PRIORITIES)
-      search = sanitize_search(data["search"] || data[:search])
+      search = sanitize_text(data["search"] || data[:search])
 
       {
         status: status,
@@ -34,31 +34,59 @@ module Ai
 
       data = payload.is_a?(Hash) ? payload : {}
       action = normalize_action(data["action"] || data[:action])
+      targets = sanitize_targets(data["targets"] || data[:targets])
       status = normalize_nullable_enum(data["status"] || data[:status], VALID_STATUSES)
       priority = normalize_nullable_enum(data["priority"] || data[:priority], VALID_PRIORITIES)
-      search = sanitize_search(data["search"] || data[:search])
-      title = sanitize_text(data["title"] || data[:title])
       description = sanitize_text(data["description"] || data[:description])
+
+      status = nil if action == "create"
+      priority = nil if action == "create"
 
       {
         action: action,
+        targets: targets,
         status: status,
         priority: priority,
-        search: search,
-        title: title,
         description: description
+      }
+    end
+
+    def self.text_search_fallback(query)
+      {
+        action: "search",
+        targets: [sanitize_text(query)].compact,
+        status: nil,
+        priority: nil,
+        description: nil
+      }
+    end
+
+    def self.ai_error_command(message)
+      {
+        action: "error",
+        targets: [],
+        status: nil,
+        priority: nil,
+        description: nil,
+        error_message: message
       }
     end
 
     def self.fallback_task_command
       {
         action: "search",
+        targets: [],
         status: nil,
         priority: nil,
-        search: nil,
-        title: nil,
         description: nil
       }
+    end
+
+    def self.sanitize_targets(value)
+      return [] if value.nil?
+      return [] unless value.is_a?(Array)
+
+      value.filter_map { |item| sanitize_text(item) }.uniq
     end
 
     def self.sanitize_search(value)

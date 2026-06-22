@@ -38,8 +38,8 @@ export function TaskAssistant({
         <CardTitle className="text-base">AI Assistant</CardTitle>
         <CardDescription>
           Search, create, complete, or delete tasks in plain language. Try: &quot;create task
-          Review PR&quot;, &quot;complete authentication task&quot;, or &quot;show high priority
-          pending tasks&quot;
+          Review PR&quot;, &quot;create 3 tasks: buy keyboard, go to gym and pick up kids&quot;, or
+          &quot;show high priority pending tasks&quot;
         </CardDescription>
       </CardHeader>
       <CardContent>

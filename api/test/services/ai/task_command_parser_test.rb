@@ -1,52 +1,100 @@
 require "test_helper"
 
 class TaskCommandParserTest < ActiveSupport::TestCase
-  class StubProvider
-    def initialize(response)
-      @response = response
+  test "parses create command via llm client" do
+    command = {
+      action: "create",
+      targets: ["Fix login bug"],
+      description: "OAuth redirect issue",
+      priority: "high",
+      status: nil
+    }
+
+    with_ai_enabled do
+      with_llm_command(command) do
+        result = Ai::TaskCommandParser.call(query: "create a high priority task fix login bug")
+
+        assert_equal "create", result[:action]
+        assert_equal ["Fix login bug"], result[:targets]
+        assert_equal "OAuth redirect issue", result[:description]
+        assert_equal "high", result[:priority]
+      end
     end
+  end
 
-    def chat(system_prompt:, user_content:)
-      @response
+  test "parses multiple complete targets via llm client" do
+    command = {
+      action: "complete",
+      targets: ["go to hospital", "go to gym"],
+      description: nil,
+      priority: nil,
+      status: nil
+    }
+
+    with_ai_enabled do
+      with_llm_command(command) do
+        result = Ai::TaskCommandParser.call(
+          query: "i need to complete the tasks: go to hospital and go to gym"
+        )
+
+        assert_equal "complete", result[:action]
+        assert_equal ["go to hospital", "go to gym"], result[:targets]
+      end
     end
   end
 
-  test "parses create command from provider response" do
-    provider = StubProvider.new(
-      '{"action":"create","title":"Fix login bug","description":"OAuth redirect issue","priority":"high","status":null,"search":null}'
-    )
+  test "parses multiple create targets via llm client" do
+    command = {
+      action: "create",
+      targets: ["buy a new keyboard", "go to gym", "take my daughter to school"],
+      description: nil,
+      priority: nil,
+      status: nil
+    }
 
-    result = Ai::TaskCommandParser.call(query: "create a high priority task fix login bug", provider: provider)
+    with_ai_enabled do
+      with_llm_command(command) do
+        result = Ai::TaskCommandParser.call(
+          query: "i need to create 3 new tasks: buy a new keyboard, go to gym and take my daughter to school"
+        )
 
-    assert_equal "create", result[:action]
-    assert_equal "Fix login bug", result[:title]
-    assert_equal "OAuth redirect issue", result[:description]
-    assert_equal "high", result[:priority]
+        assert_equal "create", result[:action]
+        assert_equal 3, result[:targets].size
+      end
+    end
   end
 
-  test "parses complete command from provider response" do
-    provider = StubProvider.new(
-      '{"action":"complete","search":"authentication","status":null,"priority":null,"title":null,"description":null}'
-    )
+  test "falls back to text search when ai is disabled" do
+    with_singleton_stub(AiService, :enabled?, false) do
+      result = Ai::TaskCommandParser.call(query: "authentication tasks")
 
-    result = Ai::TaskCommandParser.call(query: "mark authentication task as done", provider: provider)
-
-    assert_equal "complete", result[:action]
-    assert_equal "authentication", result[:search]
+      assert_equal "search", result[:action]
+      assert_equal ["authentication tasks"], result[:targets]
+    end
   end
 
-  test "falls back to rule-based create parsing without provider" do
-    result = Ai::TaskCommandParser.call(query: "create task Deploy staging")
+  test "returns an error command when llm parsing fails" do
+    original = Ai::LlmClient.method(:parse_task_command)
 
-    assert_equal "create", result[:action]
-    assert_equal "Deploy staging", result[:title]
+    with_ai_enabled do
+      Ai::LlmClient.define_singleton_method(:parse_task_command) { |**| raise Ai::LlmClient::ParseError, "boom" }
+
+      result = Ai::TaskCommandParser.call(query: "create task buy keyboard")
+
+      assert_equal "error", result[:action]
+      assert_includes result[:error_message], "Could not interpret"
+    end
+  ensure
+    Ai::LlmClient.define_singleton_method(:parse_task_command, original)
   end
 
-  test "falls back to search when provider fails" do
-    provider = StubProvider.new(nil)
-    result = Ai::TaskCommandParser.call(query: "authentication tasks", provider: provider)
+  private
 
-    assert_equal "search", result[:action]
-    assert_equal "authentication tasks", result[:search]
+  def with_ai_enabled
+    with_singleton_stub(AiService, :enabled?, true) { yield }
+  end
+
+  def with_llm_command(command)
+    with_singleton_stub(Ai::LlmClient, :parse_task_command, command) { yield }
   end
 end

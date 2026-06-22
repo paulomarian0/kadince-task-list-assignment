@@ -1,35 +1,24 @@
 require "test_helper"
 
 class TaskPriorityInferrerTest < ActiveSupport::TestCase
-  class StubProvider
-    def initialize(response)
-      @response = response
-    end
+  test "returns validated priority from llm client" do
+    with_singleton_stub(AiService, :enabled?, true) do
+      with_singleton_stub(Ai::LlmClient, :infer_task_priority, "high") do
+        result = Ai::TaskPriorityInferrer.call(
+          title: "Fix auth bug",
+          description: "Critical security issue"
+        )
 
-    def chat(system_prompt:, user_content:)
-      @response
+        assert_equal "high", result
+      end
     end
   end
 
-  test "returns validated priority from provider response" do
-    provider = StubProvider.new('{"priority":"high"}')
-    result = Ai::TaskPriorityInferrer.call(
-      title: "Fix auth bug",
-      description: "Critical security issue",
-      provider: provider
-    )
+  test "falls back to medium when ai is disabled" do
+    with_singleton_stub(AiService, :enabled?, false) do
+      result = Ai::TaskPriorityInferrer.call(title: "Task", description: "Desc")
 
-    assert_equal "high", result
-  end
-
-  test "falls back to medium for invalid provider response" do
-    provider = StubProvider.new('{"priority":"urgent"}')
-    result = Ai::TaskPriorityInferrer.call(
-      title: "Task",
-      description: "Desc",
-      provider: provider
-    )
-
-    assert_equal "medium", result
+      assert_equal "medium", result
+    end
   end
 end
