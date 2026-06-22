@@ -3,7 +3,7 @@ import { CheckCircle2, Pencil, RotateCcw, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
+import { cn, formatAddedAt } from '@/lib/utils'
 import { normalizePriority, priorityLabel, type Task } from '@/types/task'
 
 interface TaskItemProps {
@@ -52,6 +52,9 @@ export function TaskItem({
               {task.description}
             </p>
           )}
+          <p className="text-xs text-muted-foreground" data-testid="task-added-at">
+            Added {formatAddedAt(task.addedAt)}
+          </p>
           <div className="flex flex-wrap gap-2">
             <Badge
               variant={task.completed ? 'success' : 'pending'}

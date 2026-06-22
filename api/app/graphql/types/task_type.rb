@@ -9,5 +9,10 @@ module Types
     field :priority, Types::TaskPriorityEnum, null: false
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :updated_at, GraphQL::Types::ISO8601DateTime, null: false
+    field :added_at, GraphQL::Types::ISO8601DateTime, null: false
+
+    def added_at
+      object.created_at
+    end
   end
 end

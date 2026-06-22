@@ -19,8 +19,6 @@ export function TaskBoard() {
     refetch,
     activeFilter,
     setActiveFilter,
-    priorityFilter,
-    setPriorityFilter,
     applySearchFilters,
     clearSearch,
   } = useTasksQuery()
@@ -68,12 +66,19 @@ export function TaskBoard() {
         message={assistantMessage}
       />
 
-      <TaskFilters
-        activeFilter={activeFilter}
-        priorityFilter={priorityFilter}
-        onFilterChange={setActiveFilter}
-        onPriorityFilterChange={setPriorityFilter}
-      />
+      <TaskForm mode="create" onSubmit={handleCreate} isSubmitting={creating} />
+
+      {editingTask && (
+        <TaskForm
+          mode="edit"
+          task={editingTask}
+          onSubmit={handleUpdate}
+          onCancel={() => setEditingTask(null)}
+          isSubmitting={updating}
+        />
+      )}
+
+      <TaskFilters activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
       {mutationError && (
         <TaskErrorBanner
@@ -94,44 +99,26 @@ export function TaskBoard() {
         />
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-        <section className="space-y-4">
-          <TaskForm mode="create" onSubmit={handleCreate} isSubmitting={creating} />
-
-          {editingTask && (
-            <TaskForm
-              mode="edit"
-              task={editingTask}
-              onSubmit={handleUpdate}
-              onCancel={() => setEditingTask(null)}
-              isSubmitting={updating}
+      <Card>
+        <CardHeader>
+          <CardTitle>Tasks</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {showInitialLoading ? (
+            <TaskLoadingState />
+          ) : (
+            <TaskList
+              tasks={tasks}
+              loading={loading}
+              onEdit={setEditingTask}
+              onComplete={completeTask}
+              onReopen={reopenTask}
+              onDelete={deleteTask}
+              isUpdating={isBusy}
             />
           )}
-        </section>
-
-        <section>
-          <Card>
-            <CardHeader>
-              <CardTitle>Tasks</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {showInitialLoading ? (
-                <TaskLoadingState />
-              ) : (
-                <TaskList
-                  tasks={tasks}
-                  loading={loading}
-                  onEdit={setEditingTask}
-                  onComplete={completeTask}
-                  onReopen={reopenTask}
-                  onDelete={deleteTask}
-                  isUpdating={isBusy}
-                />
-              )}
-            </CardContent>
-          </Card>
-        </section>
-      </div>
+        </CardContent>
+      </Card>
     </>
   )
 }

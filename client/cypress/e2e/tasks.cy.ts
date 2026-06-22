@@ -1,4 +1,4 @@
-const uniqueTitle = (label: string) => `${label} ${Date.now()}`
+const testTitle = (label: string) => `[cypress] ${label}`
 
 const createTask = (title: string, description = '') => {
   cy.get('[data-testid="create-task-title"]').clear().type(title)
@@ -13,19 +13,24 @@ const createTask = (title: string, description = '') => {
 
 describe('Task Management', () => {
   beforeEach(() => {
+    cy.cleanupTestTasks()
     cy.visit('/')
     cy.get('[data-testid="loading-state"]', { timeout: 10000 }).should('not.exist')
     cy.get('[data-testid="filter-all"]').click()
   })
 
+  afterEach(() => {
+    cy.cleanupTestTasks()
+  })
+
   it('creates a task and shows it in the list', () => {
-    const title = uniqueTitle('New Cypress Task')
+    const title = testTitle('New Task')
     createTask(title, 'Created from Cypress')
   })
 
   it('edits a task title and description', () => {
-    const title = uniqueTitle('Editable Task')
-    const updatedTitle = `${title} Updated`
+    const title = testTitle('Editable Task')
+    const updatedTitle = testTitle('Editable Task Updated')
 
     createTask(title, 'Original description')
 
@@ -44,7 +49,7 @@ describe('Task Management', () => {
   })
 
   it('completes a task and filters by pending/completed', () => {
-    const title = uniqueTitle('Completable Task')
+    const title = testTitle('Completable Task')
     createTask(title)
 
     cy.contains('[data-testid="task-item"]', title).within(() => {
@@ -61,7 +66,7 @@ describe('Task Management', () => {
   })
 
   it('reopens a completed task', () => {
-    const title = uniqueTitle('Reopen Task')
+    const title = testTitle('Reopen Task')
     createTask(title)
 
     cy.contains('[data-testid="task-item"]', title).within(() => {
@@ -82,7 +87,7 @@ describe('Task Management', () => {
   })
 
   it('deletes a task', () => {
-    const title = uniqueTitle('Delete Task')
+    const title = testTitle('Delete Task')
     createTask(title)
 
     cy.contains('[data-testid="task-item"]', title).within(() => {
@@ -106,13 +111,6 @@ describe('Task Management', () => {
     cy.get('[data-testid="filter-completed"]').click()
     cy.get('[data-testid="task-list"]').find('[data-testid="task-status"]').each(($status) => {
       cy.wrap($status).should('contain.text', 'Completed')
-    })
-  })
-
-  it('filters tasks by priority', () => {
-    cy.get('[data-testid="filter-priority-high"]').click()
-    cy.get('[data-testid="task-list"]').find('[data-testid="task-priority"]').each(($priority) => {
-      cy.wrap($priority).should('contain.text', 'High Priority')
     })
   })
 
